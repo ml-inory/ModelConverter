@@ -59,6 +59,8 @@ OPENCV_GIT_BRANCH="3.4"
 # Tengine git分支
 TENGINE_GIT_BRANCH="master"
 
+SHALLOW="--depth 1"
+
 # git仓库是否自动更新
 GIT_AUTO_PULL="ON"
 
@@ -82,9 +84,9 @@ function install_pycocotools() {
     pip3 install cython
     # 仓库已存在
     if [ ! -d pycocotools ]; then
-        git clone https://github.com/open-mmlab/cocoapi.git pycocotools --depth=1
+        git clone https://github.com/ml-inory/cocoapi.git pycocotools --depth=1
     fi
-    cd pycocotools/pycocotools
+    cd pycocotools/PythonAPI
     python3 setup.py install
     cd ../..
 }
@@ -127,11 +129,11 @@ function install_mmdet() {
             fi
         else
             echo "$MMDET_NAME not exist, clone from git."
-            git clone -b $MMDET_GIT_BRANCH $MMDET_GIT $MMDET_NAME
+            git clone -b $MMDET_GIT_BRANCH $MMDET_GIT $MMDET_NAME $SHALLOW
             cd $MMDET_NAME
         fi
 
-        pip3 install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+        pip3 install torch==1.6.0 torchvision==0.7.0 # -f https://download.pytorch.org/whl/torch_stable.html
         pip3 install pytest-runner
         pip3 install "mmcv-full>=1.1.1, <=1.2" --trusted-host mirrors.cloud.aliyuncs.com
         install_pycocotools
@@ -157,7 +159,7 @@ function install_mmcls() {
                 git pull
             fi
         else
-            git clone -b $MMCLS_GIT_BRANCH $MMCLS_GIT $MMCLS_NAME
+            git clone -b $MMCLS_GIT_BRANCH $MMCLS_GIT $MMCLS_NAME $SHALLOW
             cd $MMCLS_NAME
         fi
 
@@ -171,7 +173,7 @@ function install_mmcls() {
 # 安装ONNX
 function install_onnx() {
     echo "================ INSTALL ONNX ================"
-    pip3 install onnx onnx-simplifier onnxruntime --use-feature=2020-resolver
+    pip3 install onnx onnx-simplifier==0.3.5 onnxruntime>=1.6.0 --use-feature=2020-resolver
     cd $EXT_DIR
 }
 
@@ -186,7 +188,7 @@ function install_opencv() {
             git checkout $OPENCV_GIT_BRANCH
         fi
     else
-        git clone -b $OPENCV_GIT_BRANCH $OPENCV_GIT $OPENCV_NAME
+        git clone -b $OPENCV_GIT_BRANCH $OPENCV_GIT $OPENCV_NAME $SHALLOW
         cd $OPENCV_NAME
     fi
 
@@ -214,7 +216,7 @@ function install_caffe() {
                 git pull
             fi
         else
-            git clone -b $CAFFE_GIT_BRANCH $CAFFE_GIT $CAFFE_NAME
+            git clone -b $CAFFE_GIT_BRANCH $CAFFE_GIT $CAFFE_NAME $SHALLOW
             cd $CAFFE_NAME
         fi
 
@@ -247,7 +249,7 @@ function install_mnn() {
                 git pull
             fi
         else
-            git clone -b $MNN_GIT_BRANCH $MNN_GIT $MNN_NAME
+            git clone -b $MNN_GIT_BRANCH $MNN_GIT $MNN_NAME $SHALLOW
             cd $MNN_NAME
         fi
 
@@ -279,7 +281,7 @@ function install_nnie() {
                 git pull
             fi
         else
-            git clone -b $NNIE_GIT_BRANCH $NNIE_GIT $NNIE_NAME
+            git clone -b $NNIE_GIT_BRANCH $NNIE_GIT $NNIE_NAME $SHALLOW
             cd $NNIE_NAME
         fi
         chmod 777 -R ./
@@ -335,7 +337,7 @@ function install_tengine() {
                 git pull
             fi
         else
-            git clone -b $TENGINE_GIT_BRANCH $TENGINE_GIT $TENGINE_NAME
+            git clone -b $TENGINE_GIT_BRANCH $TENGINE_GIT $TENGINE_NAME $SHALLOW
             cd $TENGINE_NAME
         fi
 
