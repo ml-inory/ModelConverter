@@ -8,19 +8,14 @@
 - onnx2tflite
 - onnx2trt
 - caffe2nnie
+- onnx2tengine
 
 ## 安装
 
 `sudo bash build.sh`
-
-出现输入提示后输入共达地Gitlab的账号密码即可
 
 ## 使用
 
 可通过命令行或python3 -m的方式使用，如：
 
 `mmdet2onnx` 或 `python3 -m mmdet2onnx`
-
-## 测试
-
-tests目录下运行`python3 test.py`
