@@ -1,0 +1,10 @@
+external
+*/__pycache__
+*/*/__pycache__
+*.pyc
+dist
+modelconverter.egg-info
+build
+tests/test_output
+web/upload
+web/download

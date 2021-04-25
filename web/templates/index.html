@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>共达地 模型一键转换 MMDetection, MMClassification 到 MNN, ONNX, Caffe, TFLite, TensorRT, NNIE </title>
+    <meta name="Description" content="网页一键将 MMDetection, MMClassification 转换到 MNN, ONNX, Caffe, TFLite, TensorRT, NNIE">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+
+<body onload="add_user();">
+    <style>body{max-width:500px;height: auto;margin: auto;}</style>
+    <h3 style="text-align:center;">模型转换全家桶，一键转换</h3>
+    <hr />
+
+    <p>选择输入格式：</p>
+    <form>
+        <input type="radio" name="input_format" value="mmdet" onclick="select_input();" checked>mmdet
+        <input type="radio" name="input_format" value="mmcls" onclick="select_input();">mmcls
+        <input type="radio" name="input_format" value="onnx" onclick="select_input();">ONNX
+    </form>
+
+    <iframe name="frame1" frameborder="0" height="40" hidden></iframe>
+
+    <!-- mmdet 输入文件 -->
+    <div id="mmdet_input" style="display: block;">
+        <br />
+        <form method="POST" enctype="multipart/form-data" target="frame1" action="/upload" target="frame1">
+            <input type="text" name="username" hidden>
+            <label for="mmdet_config">配置文件:</label>
+            <input type="file" name="config" id="mmdet_config" accept=".py" onchange="form.submit()">
+        </form>
+        
+        <br />
+        <form method="POST" enctype="multipart/form-data" action="/upload" target="frame1">
+            <input type="text" name="username" hidden>
+            <label for="mmdet_weight">权重文件:</label>
+            <input type="file" name="weight" id="mmdet_weight" accept=".pth" onchange="form.submit()">
+        </form>
+    </div>
+
+    <!-- mmcls 输入文件 -->
+    <div id="mmcls_input" style="display: none;">
+        <br />
+        <form method="POST" enctype="multipart/form-data" action="/upload" target="frame1">
+            <input type="text" name="username" hidden>
+            <label for="mmcls_config">配置文件:</label>
+            <input type="file" name="config" id="mmcls_config" accept=".py" onchange="form.submit()">
+        </form>
+        
+        <br />
+        <form method="POST" enctype="multipart/form-data" action="/upload" target="frame1">
+            <input type="text" name="username" hidden>
+            <label for="mmcls_weight">权重文件:</label>
+            <input type="file" name="weight" id="mmcls_weight" accept=".pth" onchange="form.submit()">
+        </form>
+    </div>
+
+    <!-- onnx 输入文件 -->
+    <div id="onnx_input" style="display: none;">
+        <br />
+        <form method="POST" enctype="multipart/form-data" action="/upload" target="frame1">
+            <input type="text" name="username" hidden>
+            <input type="file" name="weight" id="onnx_weight" accept=".onnx" onchange="form.submit()">
+        </form>
+    </div>
+
+    <br />
+
+    <hr />
+    <p>选择输出格式：</p>
+    <form>
+        <input type="radio" name="output_format" value="onnx" checked>ONNX
+        <input type="radio" name="output_format" value="mnn">MNN
+        <input type="radio" name="output_format" value="caffe">Caffe
+        <input type="radio" name="output_format" value="tflite">TFLite
+        <input type="radio" name="output_format" value="trt">TensorRT
+        <input type="radio" name="output_format" value="nnie">NNIE
+    </form>
+
+    <br />
+    <div style="text-align:center">
+        <button style="cursor:pointer; background-color: dodgerblue;color: floralwhite;border: none;border-radius: 5px; font-size:20px;width: 100px;height: 50px;" type="button" 
+            onclick="convert();" target="frame1">
+            转换
+        </button>
+    </div>
+
+</body>
+
+<script type="text/javascript"> 
+    var username_key = "modelconvert"
+
+    // 输入格式变化
+    function select_input() {
+        var item = null;
+        var obj = document.getElementsByName("input_format")
+        for (var i = 0; i < obj.length; i++) { //遍历Radio 
+            if (obj[i].checked) {
+                item = obj[i].value;                   
+            }
+        }
+
+        if (item == "mmdet") {
+            document.getElementById("mmdet_input").style.display = "block";  
+            document.getElementById("mmcls_input").style.display = "none";
+            document.getElementById("onnx_input").style.display  = "none";
+        }
+        else if (item == "mmcls") {
+            document.getElementById("mmdet_input").style.display = "none";  
+            document.getElementById("mmcls_input").style.display = "block";
+            document.getElementById("onnx_input").style.display  = "none";
+        }
+        else if (item == "onnx") {
+            document.getElementById("mmdet_input").style.display = "none";  
+            document.getElementById("mmcls_input").style.display = "none";
+            document.getElementById("onnx_input").style.display  = "block";
+        }
+    }
+
+    // 获取输入格式
+    function get_input_format() {
+        var item = null;
+        var obj = document.getElementsByName("input_format")
+        for (var i = 0; i < obj.length; i++) { //遍历Radio 
+            if (obj[i].checked) {
+                item = obj[i].value;                   
+            }
+        }
+        return item;
+    }
+
+    // 获取输出格式
+    function get_output_format() {
+        var item = null;
+        var obj = document.getElementsByName("output_format")
+        for (var i = 0; i < obj.length; i++) { //遍历Radio 
+            if (obj[i].checked) {
+                item = obj[i].value;                   
+            }
+        }
+        return item;
+    }
+
+    // 用ajax发送POST请求
+    function httpPost(URL, PARAMS) {
+        var user = get_user();
+        var response = null;
+
+        PARAMS["username"] = user;
+        $.ajax({
+            url: URL,
+            data: PARAMS,
+            type: "POST",
+            async: false,
+        }).done(function(done_param){
+            response = done_param;
+        });
+        return response;
+    }
+
+    // 用虚拟表单发送GET请求下载
+    function download_file(filename) {
+        var username = get_user();
+
+        var temp = document.createElement("form");      
+        temp.action = "/download";      
+        temp.method = "GET";      
+        temp.style.display = "none";   
+
+        var username_opt = document.createElement("textarea");      
+        username_opt.name = "username";      
+        username_opt.value = username;      
+        temp.appendChild(username_opt);
+
+        var filename_opt = document.createElement("textarea"); 
+        filename_opt.name = "filename";      
+        filename_opt.value = filename;      
+        temp.appendChild(filename_opt);
+
+        document.body.appendChild(temp);      
+        temp.submit();      
+        return temp;  
+    }
+
+    // 提交转换数据
+    function convert() {
+        var input_format = get_input_format();
+        var output_format = get_output_format();
+
+        var post_params = {
+            "input_format": input_format,
+            "config": "",
+            "weight": "",
+            "output_format": output_format
+        }
+
+        if (input_format == "mmdet") {
+            post_params["config"] = document.getElementById('mmdet_config').value;
+            post_params["weight"] = document.getElementById('mmdet_weight').value;
+
+            if (post_params["config"] == "") {
+                alert("未选择配置文件");
+                return false;
+            }
+            if (post_params["weight"] == "") {
+                alert("未选择权重文件");
+                return false;
+            }
+        }
+        else if (input_format == "mmcls") {
+            post_params["config"] = document.getElementById('mmcls_config').value;
+            post_params["weight"] = document.getElementById('mmcls_weight').value;  
+
+            if (post_params["config"] == "") {
+                alert("未选择配置文件");
+                return false;
+            }
+            if (post_params["weight"] == "") {
+                alert("未选择权重文件");
+                return false;
+            }          
+        }
+        else if (input_format == "onnx") {
+            post_params["config"] = "";
+            post_params["weight"] = document.getElementById('onnx_weight').value;
+
+            if (post_params["weight"] == "") {
+                alert("未选择权重文件");
+                return false;
+            }
+        }
+        var response = httpPost("convert", post_params);
+        console.log("response:", response);
+        if (response != null) {
+            if (response["message"] != "ok") {
+                alert("转换失败");
+                return false;
+            }
+
+            filename = response["filename"];
+            download_file(filename);
+        }
+        return true;
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires="+d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name)  == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    // 添加用户
+    function add_user() {
+        setCookie(username_key, String((new Date()).getTime()), 1);
+        var user = getCookie(username_key);
+        httpPost("/add_user", {"username": user});
+
+        var obj = document.getElementsByName("username")
+        for (var i = 0; i < obj.length; i++) { 
+            obj[i].value = user;
+        }
+    }
+
+    // 获取用户
+    function get_user() {
+        return getCookie(username_key);
+    }
+
+</script>
+
+</html>
