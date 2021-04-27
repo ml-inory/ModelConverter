@@ -64,10 +64,6 @@ SHALLOW="--depth 1"
 # git仓库是否自动更新
 GIT_AUTO_PULL="ON"
 
-# git账号
-GIT_USER=""
-GIT_PASS=""
-
 # 第三方库安装目录
 EXT_DIR=external
 # 第三方库安装路径
@@ -225,7 +221,7 @@ function install_caffe() {
         pip3 install opencv-python numpy cython
         apt-get install -y --no-install-recommends libboost-all-dev
         apt-get install -y libatlas-base-dev libgflags-dev libgoogle-glog-dev liblmdb-dev
-        mkdir -p build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PREFIX -DCPU_ONLY=ON -Dpython_version=3 .. && make -j`nproc` && make pycaffe && make install
+        mkdir -p build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PREFIX -DCPU_ONLY=ON -DBuild_python -Dpython_version=3 .. && make -j`nproc` && make pycaffe && make install
         pip3 install -r $EXT_INSTALL_PREFIX/python/requirements.txt
         export PYTHONPATH=$EXT_INSTALL_PREFIX/python
         export_var "export PYTHONPATH=$EXT_INSTALL_PREFIX/python"
