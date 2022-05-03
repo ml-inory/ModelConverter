@@ -140,7 +140,7 @@ def download():
         print('username: ', request.args.get('username'))
         print('filename: ', request.args.get('filename'))
         print('Download: ', os.path.join(DOWNLOAD_FOLDER, username, filename))
-        return send_file(os.path.join(DOWNLOAD_FOLDER, username, filename), as_attachment=True)
+        return send_file(safe_join(DOWNLOAD_FOLDER, username, filename), as_attachment=True)
         # return jsonify({'message': 'ok'})
 
 if __name__ == '__main__':
